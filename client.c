@@ -51,9 +51,13 @@ int main( int argc, char *argv[] )
 
 	printf("You typed:%s", buffer);
 
-	nBytes = strlen(buffer) +1;
+  char fmsg[1036];
+  init_str(fmsg);
+  wrap(fmsg,argv[1],buffer);
 
-	sendto(clientSocket, buffer, nBytes, 0, (struct sockaddr *)&serverAddr, addr_size);
+	nBytes = strlen(fmsg) +1;
+
+	sendto(clientSocket, fmsg, nBytes, 0, (struct sockaddr *)&serverAddr, addr_size);
 
 	nBytes = recvfrom(clientSocket, buffer, 1024, 0, NULL, NULL);
 
