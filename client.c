@@ -11,13 +11,21 @@
 // sting manipulation header ** custom made **
 #include "strmp.h"	
 
+
+// global variables initialization
+int port;
+int clientSocket, portNum, nBytes;
+char buffer[1024];
+struct sockaddr_in serverAddr;
+socklen_t addr_size;
+
+
+
 int main( int argc, char *argv[] )
 {
 	 if (argc == 3)			// for command line arguments 
   {
   	printf("Current ip_addr :%s\n", argv[1]);
-  	
-  
   }
   else
   {
@@ -26,15 +34,12 @@ int main( int argc, char *argv[] )
   	return 0;
   }
 
-  int port = strtol(argv[2],NULL,10);
+  port = strtol(argv[2],NULL,10);
   printf("Current port :%d\n", port);
-  int clientSocket, portNum, nBytes;
-  char buffer[1024];
-  struct sockaddr_in serverAddr;
-  socklen_t addr_size;
 
 
-  clientSocket = socket(PF_INET, SOCK_DGRAM, 0);
+
+  clientSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_port = htons(port);
@@ -51,9 +56,12 @@ int main( int argc, char *argv[] )
 
 	printf("You typed:%s", buffer);
 
-  char fmsg[1036];
+  char fmsg[1036],ip[12];
   init_str(fmsg);
-  wrap(fmsg,argv[1],buffer);
+  init_str(ip);
+  strcpy(ip,"192.168.7.5");
+
+  wrap(fmsg,ip,buffer);
 
 	nBytes = strlen(fmsg) +1;
 
@@ -62,7 +70,6 @@ int main( int argc, char *argv[] )
 	nBytes = recvfrom(clientSocket, buffer, 1024, 0, NULL, NULL);
 
 	printf("Recieved from server: %s \n", buffer);
-
 
 	}
 

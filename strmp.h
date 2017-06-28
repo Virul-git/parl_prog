@@ -42,7 +42,7 @@ void itoa(int n, char s[])
 
 
 
-void extract(char fmsg[], char msg[1024], char ip[14])
+void extract(char fmsg[], char msg[1024], char ip[12])
 {
 	int j,len,len_ip;
 	len = strlen(fmsg);
