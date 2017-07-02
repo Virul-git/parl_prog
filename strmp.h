@@ -74,4 +74,7 @@ void wrap(char fmsg[], char ip[], char msg[])
 	strcat(fmsg,ip);
 	strcat(fmsg,msg);
 }
+
+
+
 #endif

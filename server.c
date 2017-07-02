@@ -6,11 +6,12 @@
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 //  custom header
 #include "strmp.h"
 
-// define global variables
+//  **************** define global variables *********************//
 int nclients =0;
 int port;
 int udpSocket, nBytes;
@@ -23,6 +24,7 @@ struct sockaddr_storage serverStorage;
 socklen_t addr_size, client_addr_size;
 bool server_active;
 
+// **************************************************************//
 
 struct client
 {
@@ -72,28 +74,63 @@ bool server_input()
   return false;
 }
 
-int main( int argc, char *argv[])
+
+
+void clients_update()
 {
-    if (argc == 3)
+  init_str(buffer);
+  init_str(msg);
+  init_ip(ip);
+  nBytes = recvfrom(udpSocket, buffer, 1036, 0, (struct sockaddr *)&serverStorage, &addr_size);
+  if(nBytes >0)
   {
-  	printf("Current ip_addr :%s\n", argv[1]);
-  	//printf("Current port :%d\n", (*(argv[2])));
-  
+    extract(buffer,msg,ip);
+    int j;
+    bool new_client = true;
+   for(j=0;j<nclients;j++)
+    {
+      if(strcmp(clients[j].ip ,ip)==0)
+      {
+        new_client = false;
+      };
+    };
+
+    if(new_client)
+    {
+      strcpy(clients[nclients].ip,ip);
+      clients[nclients].status = 'R';
+      nclients++;
+      init_str(msg);
+      strcpy(msg,"welcome client");
+      sendto(udpSocket,msg,1024,0,(struct sockaddr *)&serverStorage,addr_size);
+    }
+    else
+    {
+      init_str(msg);
+      strcpy(msg,"wait for instructions");
+      sendto(udpSocket,msg,1024,0,(struct sockaddr *)&serverStorage,addr_size);
+    }
+  };
+}
+
+void check_args(int argc, char *argv[])
+{
+  if (argc == 3)
+  {
+    printf("Current ip_addr :%s\n", argv[1]);
+    //printf("Current port :%d\n", (*(argv[2])));
   }
   else
   {
-  	printf("Error: Specify ip_addr and port_number\n");
-  	printf("Correct way of entering arguments is, <file_name> <ip_addr> <port_number>\n " );
-  	return 0;
-  }
-
-   port = strtol(argv[2],NULL,10);
+    printf("Error: Specify ip_addr and port_number\n");
+    printf("Correct way of entering arguments is, <file_name> <ip_addr> <port_number>\n " );
+    exit(0);
+  };
   printf("Current port :%d\n",port);
- //argv[2] = ((int) ((long int) (argv[2])));
- // printf("%d\n", argv[2] );
- 
+}
 
-
+void init_socket(int argc, char *argv[] )
+{
   udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
   serverAddr.sin_family = AF_INET;
@@ -105,22 +142,67 @@ int main( int argc, char *argv[])
 
   addr_size = sizeof serverStorage;
 
-   server_active = false;
+  server_active = false;
+}
 
-  while(1)
-  { 
 
+void main_server()
+{
   init_str(buffer);
   init_str(msg);
 
   init_ip(ip);
+
+
   nBytes = recvfrom(udpSocket, buffer, 1036, 0, (struct sockaddr *)&serverStorage, &addr_size);
 
+  extract(buffer,msg,ip);
+
+  printf("%s\n",buffer);
+  printf("%s\n",ip);
+  printf("%s\n",msg);
+
+  int i;
+  for(i=0;i<nBytes-1-strlen(ip);i++)
+  { 
+  msg[i] = toupper(msg[i]);
+  };
+
+  sendto(udpSocket, msg, nBytes-strlen(ip), 0, (struct sockaddr *)&serverStorage, addr_size);
+}
+
+
+int main( int argc, char *argv[])
+{
+  
+ //argv[2] = ((int) ((long int) (argv[2])));
+ // printf("%d\n", argv[2] );
+  check_args(argc,argv);
+  udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
+
+  serverAddr.sin_family = AF_INET;
+  serverAddr.sin_port = htons(port);
+  serverAddr.sin_addr.s_addr = inet_addr(argv[1]);
+  memset(serverAddr.sin_zero,'\0', sizeof serverAddr.sin_zero);
+
+  bind(udpSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+
+  addr_size = sizeof serverStorage;
+
+  server_active = false;
+
+
+  while(1)
+  { 
+    init_str(buffer);
+    init_str(msg);
+    init_ip(ip);
+    nBytes = recvfrom(udpSocket, buffer, 1036, 0, (struct sockaddr *)&serverStorage, &addr_size);
     if(nBytes >0)
     {
-    extract(buffer,msg,ip);
-    int j;
-    bool new_client = true;
+      extract(buffer,msg,ip);
+      int j;
+      bool new_client = true;
      for(j=0;j<nclients;j++)
       {
         if(strcmp(clients[j].ip ,ip)==0)
@@ -145,34 +227,12 @@ int main( int argc, char *argv[])
         sendto(udpSocket,msg,1024,0,(struct sockaddr *)&serverStorage,addr_size);
       }
     };
-
-  display(argv);
-  server_active = server_input();
+    display(argv);
+    server_active = server_input();
 
     while(server_active)
   	{
-
-      init_str(buffer);
-      init_str(msg);
-
-      init_ip(ip);
-
-
-    nBytes = recvfrom(udpSocket, buffer, 1036, 0, (struct sockaddr *)&serverStorage, &addr_size);
-
-     extract(buffer,msg,ip);
-
-     printf("%s\n",buffer);
-     printf("%s\n",ip);
-     printf("%s\n",msg);
-
-     int i;
-  	 for(i=0;i<nBytes-1-strlen(ip);i++)
-  	 { 
-  		msg[i] = toupper(msg[i]);
-  	 };
-  	
-  	 sendto(udpSocket, msg, nBytes-strlen(ip), 0, (struct sockaddr *)&serverStorage, addr_size);
+      main_server();
   	};
   };
 
