@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <ctype.h>
-#include <stdbool.h>
+#include <stdbool.h>  // for bool function
+// #include <unistd.h> /// to use sleep     (do not use if no delay needed);
+#include <pthread.h> // for threading
 
 //  custom header
 #include "strmp.h"
@@ -46,7 +48,7 @@ void  display(char *argv[])
   printf("number of clients connected: %d\n",nclients );
 }
 
-bool server_input()
+void *server_input(void *argp)
 {
   char action;
   printf("Select an action: w-wait, s-start, exit-exit\n");
@@ -56,17 +58,17 @@ bool server_input()
   switch(action)
   {
     case 'w':
-      return  false;
+      server_active =  false;
       break;
     case 's':
-      return true;
+      server_active = true;
       break;
     case 'e':
-      return false;
+      server_active = false;
       exit(0);
       break;
   }
-  return false;
+  // server_active = false;
 }
 
 void server_routine()
@@ -175,7 +177,8 @@ int main( int argc, char *argv[])
 
   init_socket(argc,argv);
 
-
+  pthread_t serIn;
+  pthread_create(&serIn,NULL,server_input,NULL);
 
   while(1)
   { 
@@ -192,7 +195,9 @@ int main( int argc, char *argv[])
     };
 
   display(argv);
-  server_active = server_input();
+
+  // uncomment the below line when not using the multi-thread input
+  // server_active = server_input();   
 
   server_routine();
 
