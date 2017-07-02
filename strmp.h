@@ -59,7 +59,7 @@ void extract(char fmsg[], char msg[1024], char ip[12])
 
 void init_str(char s[])
 {
-	memset(s,'\0',sizeof(*s));
+	memset(s,'\0',strlen(s));
 }
 
 void init_ip(char ip[])
