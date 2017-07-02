@@ -70,7 +70,6 @@ int main( int argc, char *argv[] )
 	nBytes = recvfrom(clientSocket, buffer, 1024, 0, NULL, NULL);
 
 	printf("Recieved from server: %s \n", buffer);
-
 	}
 
    return 0;

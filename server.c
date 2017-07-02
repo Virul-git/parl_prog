@@ -94,7 +94,7 @@ int main( int argc, char *argv[])
  
 
 
-  udpSocket = socket(PF_INET, SOCK_DGRAM, 0);
+  udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_port = htons(port);
@@ -121,7 +121,7 @@ int main( int argc, char *argv[])
     extract(buffer,msg,ip);
     int j;
     bool new_client = true;
-      for(j=0;j<nclients;j++)
+     for(j=0;j<nclients;j++)
       {
         if(strcmp(clients[j].ip ,ip)==0)
         {
@@ -158,7 +158,7 @@ int main( int argc, char *argv[])
       init_ip(ip);
 
 
-    	nBytes = recvfrom(udpSocket, buffer, 1036, 0, (struct sockaddr *)&serverStorage, &addr_size);
+    nBytes = recvfrom(udpSocket, buffer, 1036, 0, (struct sockaddr *)&serverStorage, &addr_size);
 
      extract(buffer,msg,ip);
 
